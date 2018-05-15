@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const expressValidator = require('express-validator');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
@@ -36,10 +35,6 @@ let Article = require('./models/Article');
 let File = require('./models/File');
 let Post = require('./models/Post');
 
-// Load View Engine
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
 // Body Parser Middleware
 // Parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -63,24 +58,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Express Validator Middleware
-app.use(expressValidator({
-  errorFormatter: (param, msg, value) => {
-    var namespace = param.split('.')
-    , root = namespace.shift()
-    , formParam = root;
-
-    while(namespace.length) {
-      formParam += '[' + namespace.shift() + ']';
-    }
-    return {
-      param : formParam,
-      msg   : msg,
-      value : value
-    };
-  }
-}));
-
 // Passport Config
 require('./config/passport')(passport);
 // Passport Middleware
@@ -95,7 +72,7 @@ app.get('*', (req, res, next) => {
 
 // Home Route
 app.get('/', (req, res) => {
-  res.render('index');
+  res.status(200).json({ success: true, msg: 'Welcome to DevX!' });
 });
 
 // Upload POST Route
@@ -145,26 +122,25 @@ app.post('/images/upload', (req, res) => {
 
 // Home Route
 app.get('/home', (req, res) => {
-  Article.find({}, (err, articles) => {
-    if(err){
-      console.log(err);
-    } else {
-      res.render('home', {
-        title: 'Home | Tension',
-        articles:articles
-      });
-    }
+  Post.find({}, (err, posts) => {
+    Article.find({}, (err, articles) => {
+      if(err){
+        res.status(400).json({ success: false, msg: 'Unable to fetch posts and articles from the database.'})
+      } else {
+        res.status(200).json({ success: true, posts:posts, articles:articles });
+      }
+    });
   });
 });
 
 // Email Verification Confirmation Page
 app.get('/email-verify', (req, res) => {
-  res.render('email-verify');
+  res.status(200).json({ success: true, msg: ''});
 });
 
 // Email Verified Confirmation Page
 app.get('/account-verified', (req, res) => {
-  res.render('account-verified');
+  res.status(200).json({ success: true, msg: 'Your account has been verified, please log in.'});
 });
 
 // Route Files
