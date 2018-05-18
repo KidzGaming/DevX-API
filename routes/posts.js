@@ -35,11 +35,21 @@ router.post('/new', (req, res) => {
 
 router.post('/:id/like', (req, res) => {
   const { id } = req.params;
-  console.log(req.user);
   if(!req.user._id){
     res.status(500).json({ success: false, msg: 'Please log in or sign up.' });
   } else {
-    Post.update({_id: id}, { $push: { likes: req.user._id } });
+    Post.findById(id, (err, post) => {
+      if(err){
+        res.status(400).json({ success: false, msg: 'Unable to fetch post' });
+      } else {
+        post.likes.push(req.user._id);
+        post.save((err) => {
+          if(err){
+            res.status(400).json({ success: false, msg: 'Unable to like post.' });
+          }
+        });
+      }
+    });
   }
 });
 
@@ -47,17 +57,23 @@ router.post('/:id/unlike', (req, res) => {
   const { id } = req.params;
   if(!req.user._id){
     res.status(500).json({ success: false, msg: 'Please log in or sign up.' });
-  }
-  Post.findOne({id:id}, (err, post) => {
-    if(err){
-      res.status(400).json({ success: false, msg: 'Unable to find post' });
-    } else {
-      const index = post.likes.indexOf(req.user._id);
-      if(index > -1 ){
-        post.likes.splice(index, 1);
+  } else {
+    Post.findOne({_id:id}, (err, post) => {
+      if(err){
+        res.status(400).json({ success: false, msg: 'Unable to find post.' });
+      } else {
+        const index = post.likes.indexOf(req.user._id);
+        if(index > -1 ){
+          post.likes.splice(index, 1);
+          post.save((err) => {
+            if(err){
+              res.status(400).json({ success: false, msg: 'Unable to unlike post.' });
+            }
+          });
+        }
       }
-    }
-  });
+    });
+  }
 });
 
 router.get('/:id/comments', (req, res) => {
@@ -91,6 +107,11 @@ router.post('/:id/comments/new', (req, res) => {
           }
         });
         post.comments.push(newComment._id);
+        post.save((err) => {
+          if(err){
+            res.status(200).json({ success: false, msg: 'Unable to add comment.' });
+          }
+        });
       }
     });
   }

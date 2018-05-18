@@ -23,6 +23,10 @@ const ArticleSchema = new Schema({
     required: true,
     default: []
   },
+  claps: {
+    type: Number,
+    default: 0
+  },
   date:{
     type: Date,
     default: Date.now,
