@@ -18,7 +18,7 @@ router.get('/:username', (req, res) => {
             if(err){
               res.status(400).json({ success: false, msg: 'Unable to fetch profile information. Please make sure you provided the right username.'});
             } else {
-              res.status(200).json({ profile: { user: user, posts: posts, settings: settings }});
+              res.status(200).json({ profile: profile, user: user, posts: posts, settings: settings });
             }
           });
         });

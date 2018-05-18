@@ -9,10 +9,6 @@ const ProfileSchema = new Schema({
   handle: {
     type: String,
     required: true
-  },
-  githubUrl: {
-    type: String,
-    required: true
   }
 }, { timestamps: true });
 

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
 const session = require('express-session');
+const expressValidator = require('express-validator');
 const passport = require('passport');
 const config = require('./config/database');
 const port = process.env.PORT || 3500;
@@ -57,6 +58,24 @@ app.use((req, res, next) => {
   res.locals.messages = require('express-messages')(req, res);
   next();
 });
+
+// Express Validator Middleware
+app.use(expressValidator({
+  errorFormatter: function(param, msg, value) {
+      var namespace = param.split('.')
+      , root = namespace.shift()
+      , formParam = root;
+
+    while(namespace.length) {
+      formParam += '[' + namespace.shift() + ']';
+    }
+    return {
+      param : formParam,
+      msg   : msg,
+      value : value
+    };
+  }
+}));
 
 // Passport Config
 require('./config/passport')(passport);

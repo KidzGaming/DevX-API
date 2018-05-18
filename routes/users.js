@@ -14,111 +14,99 @@ let Token = require('../models/Token');
 
 // Register Process
 router.post('/register', function(req, res){
-  const firstname = req.body.firstname;
-  const lastname = req.body.lastname;
-  const fullname = req.body.firstname + ' ' + req.body.lastname;
-  const email = req.body.email;
-  const username = req.body.username;
-  const usertype = req.body.usertype;
-  const password = req.body.password;
-  const confirmpassword = req.body.confirmpassword;
+  const { firstname, lastname, email, username, password, confirmpassword } = req.body;
+  const fullname = `${firstname} ${lastname}`;
 
-  let errors = req.validationErrors();
-
-  if(errors){
-    res.render('register', {
-      errors:errors
-    });
-  } else {
-    let newUser = new User({
-      firstname:firstname,
-      lastname:lastname,
-      fullname:fullname,
-      email:email,
-      username:username,
-      usertype:usertype,
-      password:password
-    });
-
-    bcrypt.genSalt(10, function(err, salt){
-      bcrypt.hash(newUser.password, salt, function(err, hash){
-        if(err){
-          console.log(err);
-        }
-        newUser.password = hash;
-        newUser.save((err) => {
-          if(err) {
-            return res.status(500).send({ msg: err.message });
+  User.findOne({ email:email }, (err, user) => {
+    if(!user){
+      let newUser = new User({
+        firstname:firstname,
+        lastname:lastname,
+        fullname:fullname,
+        email:email,
+        username:username,
+        password:password
+      });
+  
+      bcrypt.genSalt(10, function(err, salt){
+        bcrypt.hash(newUser.password, salt, function(err, hash){
+          if(err){
+            console.log(err);
           }
-
-          // Create user profile
-          const newProfile = new Profile({
-            userId: newUser._id,
-            handle: newUser.username,
-          });
-          
-          // Save user profile
-          newProfile.save((err) => {
-            if(err){
-              return res.status(500).json({ msg: `The following error occured: ${err}`});
-            }
-          });
-          
-          // Create profile settings for user
-          const newUserSettings = new UserSettings({
-            userId: newUser._id
-          });
-      
-          // Save user's profile settings
-          newUserSettings.save((err) => {
-            if(err){
-              return res.status(500).json({ msg: `The following error occured: ${err}`});
-            }
-          });
-
-          // Create portfolio for user
-          const newPortfolio = new Portfolio({
-            userId: newUser._id
-          });
-      
-          // Save user's profile settings
-          newPortfolio.save((err) => {
-            if(err){
-              return res.status(500).json({ msg: `The following error occured: ${err}`});
-            }
-          });
-
-          // Create verification token for this user
-          const newToken = new Token({ userId: newUser._id, token: crypto.randomBytes(16).toString('hex') });
-
-          // Save the verification token
-          newToken.save((err) => {
-            if(err){
+          newUser.password = hash;
+          newUser.save((err) => {
+            if(err) {
               return res.status(500).send({ msg: err.message });
             }
-
-            // Send the mail
-            const transporter = nodemailer.createTransport({ service: 'Gmail', auth: { user: process.env.GMAIL_ADDRESS, pass: process.env.GMAIL_PASSWORD } });
-            const mailOptions = { from: process.env.GMAIL_ADDRESS, to: newUser.email, subject: 'Verify your Tension Account', text: 'Hello, ' + newUser.firstname + ' ' + newUser.lastname + '\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '\/users\/confirmation\/' + token.token + '.\n'};
-            transporter.sendMail(mailOptions, function (err) {
+  
+            // Create user profile
+            const newProfile = new Profile({
+              userId: newUser._id,
+              handle: newUser.username,
+            });
+            
+            // Save user profile
+            newProfile.save((err) => {
+              if(err){
+                return res.status(500).json({ msg: `The following error occured: ${err}`});
+              }
+            });
+            
+            // Create profile settings for user
+            const newUserSettings = new UserSettings({
+              userId: newUser._id
+            });
+        
+            // Save user's profile settings
+            newUserSettings.save((err) => {
+              if(err){
+                return res.status(500).json({ msg: `The following error occured: ${err}`});
+              }
+            });
+  
+            // Create portfolio for user
+            const newPortfolio = new Portfolio({
+              userId: newUser._id
+            });
+        
+            // Save user's profile settings
+            newPortfolio.save((err) => {
+              if(err){
+                return res.status(500).json({ msg: `The following error occured: ${err}`});
+              }
+            });
+  
+            // Create verification token for this user
+            const newToken = new Token({ userId: newUser._id, token: crypto.randomBytes(16).toString('hex') });
+  
+            // Save the verification token
+            newToken.save((err) => {
               if(err){
                 return res.status(500).send({ msg: err.message });
               }
-              // Redirect the user to the email verification information page.
-              res.status(200).json({ success: true, msg: `An email has been sent to ${newUser.email} with a link to verify your email address. If not found in your mailbox, check your spam or trash folder.` })
+  
+              // Send the mail
+              const transporter = nodemailer.createTransport({ service: 'Gmail', auth: { user: process.env.GMAIL_ADDRESS, pass: process.env.GMAIL_PASSWORD } });
+              const mailOptions = { from: process.env.GMAIL_ADDRESS, to: newUser.email, subject: 'Verify your Tension Account', text: 'Hello, ' + newUser.firstname + ' ' + newUser.lastname + '\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '\/users\/confirmation\/' + newToken.token + '.\n'};
+              transporter.sendMail(mailOptions, function (err) {
+                if(err){
+                  return res.status(500).send({ msg: err.message });
+                }
+                // Redirect the user to the email verification information page.
+                res.status(200).json({ success: true, msg: `An email has been sent to ${newUser.email} with a link to verify your email address. If not found in your mailbox, check your spam or trash folder.` })
+              });
             });
           });
         });
       });
-    });
-  }
+    } else {
+      res.status(200).json({ success: false, msg: 'Another user is registered with this email address.' });
+    }
+  });
 });
 
 router.get('/confirmation/:token', function(req, res){
   const { token } = req.params;
-
-  const errors = req.validationErrors();
-  if (errors) return res.status(400).send(errors);
 
   // Find a matching token
   Token.findOne({ token: token }, function(err, token){

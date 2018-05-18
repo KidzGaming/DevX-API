@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 // Bring in Article Model
-let Article = require('../models/article');
+let Article = require('../models/Article');
 
 // Bring in User Model
-let User = require('../models/user');
+let User = require('../models/User');
 
 // Add Submit POST Route
 router.post('/publish', function(req, res){
@@ -24,7 +24,6 @@ router.post('/publish', function(req, res){
     article.author = req.user._id;
     article.featuredImage = req.body.featuredImage;
     article.date = Date.now();
-    article.category = req.body.category;
     article.content = req.body.content;
     article.excerpt = req.body.excerpt;
 
@@ -41,8 +40,9 @@ router.post('/publish', function(req, res){
 });
 
 // Load Edit Form
-router.get('/edit/:id', ensureAuthenticated, function(req, res){
-  Article.findById(req.params.id, function(err, article){
+router.get('/edit/:id', ensureAuthenticated, (req, res) => {
+  const { id } = req.params;
+  Article.findById(id, (err, article) => {
     if(article.author != req.user._id){
       req.flash('danger', 'You are not authorized to edit this article.');
       res.redirect('/home');
@@ -55,16 +55,16 @@ router.get('/edit/:id', ensureAuthenticated, function(req, res){
 });
 
 // Update Submit POST Route
-router.post('/edit/:id', function(req, res){
+router.post('/edit/:id', (req, res) => {
   let article = {};
   article.headline = req.body.headline;
   article.featuredImage = req.body.featuredImage;
   article.content = req.body.content;
   article.excerpt = req.body.excerpt;
 
-  let query = {_id:req.params.id}
+  let query = { _id:req.params.id }
 
-  Article.update(query, article, function(err){
+  Article.update(query, article, (err) => {
     if(err){
       console.log(err);
       return;
@@ -76,16 +76,17 @@ router.post('/edit/:id', function(req, res){
 });
 
 // Delete Article
-router.delete('/:id', function(req, res){
+router.delete('/:id', (req, res) => {
+  const { id } = req.params;
   if(!req.user._id){
     res.status(500).send();
   }
-  let query = {_id:req.params.id}
-  Article.findById(req.params.id, function(err, article){
+  let query = {_id:id}
+  Article.findById(id, (err, article) => {
     if(article.author != req.user._id){
       res.status(500).send();
     } else {
-      Article.remove(query, function(err){
+      Article.remove(query, (err) => {
         if(err){
           console.log(err);
         }
@@ -96,14 +97,11 @@ router.delete('/:id', function(req, res){
 });
 
 // Get Single Article
-router.get('/:id', function(req, res){
-  Article.findById(req.params.id, function(err, article){
-    User.findById(article.author, function(err, user){
-      res.render('article', {
-        article:article,
-        author: user.fullname,
-        content: article.content
-      });
+router.get('/:id', (req, res) => {
+  const { id } = req.params;
+  Article.findById(id, (err, article) => {
+    User.findById(article.author, (err, user) => {
+      res.status(200).json({ article:article, author: user.fullname, content: article.content });
     });
   });
 });

@@ -1,18 +1,23 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const ProfileSchema = new Schema({
+const PostSchema = new Schema({
   author: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  profilePicture: {
+  likes: {
+    type: Array,
+    default: []
+  },
+  comments: {
+    type: Array,
+    default: []
+  },
+  text: {
     type: String,
     required: true
-  },
-  featuredImage: {
-    type: String
   }
 });
 
-const Profile = module.exports = mongoose.model('Profile', ProfileSchema);
+const Profile = module.exports = mongoose.model('Post', PostSchema);
