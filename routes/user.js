@@ -21,7 +21,7 @@ router.get('/feed', (req, res) => {
                 console.log(feed);
                 res.status(200).json({ success: true, feed: feed });
               }
-            });
+            }).sort({ date: -1 });
           }
         });
       }

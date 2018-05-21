@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
     } else {
       res.status(200).json({ success: true, posts: posts });
     }
-  });
+  }).sort({ date: -1 });
 });
 
 router.post('/new', (req, res) => {
