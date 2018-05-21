@@ -165,20 +165,22 @@ app.get('/account-verified', (req, res) => {
 // Route Files
 let articles = require('./routes/articles');
 let users = require('./routes/users');
+let user = require('./routes/user');
 let profile = require('./routes/profile');
 let groups = require('./routes/groups');
 let projects = require('./routes/projects');
 let posts = require('./routes/posts');
 app.use('/articles', articles);
 app.use('/users', users);
+app.use('/user', user);
 app.use('/profile', profile);
 app.use('/groups', groups);
 app.use('/projects', projects);
 app.use('/posts', posts);
 
 // app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//   res.setHeader('Access-Control-Allow-Origin', '*');
+//   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 //   next();
 // });
 

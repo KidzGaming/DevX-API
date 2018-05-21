@@ -183,4 +183,47 @@ router.get('/logout', function(req, res){
   res.redirect('/users/login');
 });
 
+router.post('/:username/follow', (req, res) => {
+  const { username } = req.params;
+  if(!req.user._id){
+    res.status(500).send();
+  } else {
+    User.findOne({ username: username }, (err, user) => {
+      if(err){
+        res.status(400).json({ success: false, msg: 'Could not fetch user from database.' });
+      } else {
+        user.followers.push(req.user._id);
+        user.save((err) => {
+          if(err){
+            res.status(400).json({ success: false, msg: 'Could not follow user!' });
+          }
+        });
+      }
+    });
+  }
+});
+
+router.post('/:username/unfollow', (req, res) => {
+  const { username } = req.params;
+  if(!req.user._id){
+    res.status(500).send();
+  } else {
+    User.findOne({ username: username }, (err, user) => {
+      if(err){
+        res.status(400).json({ success: false, msg: 'Could not fetch user from database.' });
+      } else {
+        const index = user.followers.indexOf(req.user._id);
+        if(index > -1){
+          user.followers.splice(index, 1);
+          user.save((err) => {
+            if(err){
+              res.status(400).json({ success: false, msg: 'Could not follow user!' });
+            }
+          });
+        }
+      }
+    });
+  }
+});
+
 module.exports = router;
