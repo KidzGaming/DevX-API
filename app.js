@@ -176,6 +176,12 @@ app.use('/groups', groups);
 app.use('/projects', projects);
 app.use('/posts', posts);
 
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//   next();
+// });
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server started at port ${port}.`);

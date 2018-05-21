@@ -153,6 +153,7 @@
     "get-stream": "^3.0.0",
     "get-value": "^2.0.6",
     "getpass": "^0.1.7",
+    "getstream": "^3.16.0",
     "glob": "^7.1.2",
     "glob-parent": "^3.1.0",
     "global-dirs": "^0.1.1",

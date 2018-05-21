@@ -8,19 +8,19 @@ let Article = require('../models/Article');
 let User = require('../models/User');
 
 // Add Submit POST Route
-router.post('/publish', function(req, res){
+router.post('/publish', (req, res) => {
+  const { headline, author, concept, excerpt } = req.body;
   let article = new Article();
-  article.headline = req.body.headline;
+  article.headline = headline;
   article.author = req.user._id;
   article.featuredImage = req.body.featuredImage;
   article.date = Date.now();
-  article.content = req.body.content;
-  article.excerpt = req.body.excerpt;
+  article.content = content;
+  article.excerpt = excerpt;
 
-  article.save(function(err){
+  article.save((err) => {
     if(err){
-      console.log(err);
-      return;
+      res.status(400).json({ success: false, msg: 'Unable to publish article.' });
     } else {
       res.status(200).json({ success: true, msg: 'Article successfully created!' });
     }
